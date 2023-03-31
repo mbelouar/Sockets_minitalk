@@ -1,26 +1,32 @@
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/socket.h>
-#include <unistd.h>
-#define PORT 8080
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   client.c                                           :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: mbelouar <marvin@42.fr>                    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2023/03/30 22:58:32 by mbelouar          #+#    #+#             */
+/*   Updated: 2023/03/30 22:58:33 by mbelouar         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "sockets.h"
 
 // Stages for Client
 /*The client-side sends the connection requests to the server-side.
 To perform these several stages have to be performed on the client side,*/
 
-int main()
+int main(int argc, char** argv)
 {
-    char *ip = "127.0.0.1";
+    if (argc != 3)
+        return (printf("invalid args\n") * 0);
+    char *ip = argv[1];
     
+    int status;
     int client_fd;
     struct sockaddr_in addr;
-    socklen_t   addr_size;
-    char buffer[1024];
-    char* hello_msg = "HELLO FROM THE CLIENT";
-    int status, valread;
+    char buffer[1024] = {0};
+    char* hello_msg = argv[2];
 
     // socket function is used to creating socket file descriptor
     client_fd = socket(AF_INET, SOCK_STREAM, 0);
@@ -34,9 +40,9 @@ int main()
         perror("[-]Socket FAILED");
         exit(EXIT_FAILURE);
     }
-    printf("[+]TCP client socket created.\n");
+    printf("\n[+] TCP client socket created.\n");
 
-    memset(&addr, '\0', sizeof(addr));
+    memset(&addr, 0, sizeof(addr));
 
     addr.sin_family = AF_INET;
     addr.sin_port = PORT;
@@ -46,21 +52,18 @@ int main()
     status = connect(client_fd, (struct sockaddr *)&addr, sizeof(addr));
     if (status < 0) // check if the connection was done.
     {
-        perror("[-]The connection is FAILED");
+        perror("[-] The connection is FAILED");
         return(-1);
     }
     printf("\nConnected to the server.\n");
 
-    bzero(buffer, 1024);
-    strcpy(buffer, hello_msg);
-    printf("\nClient : %s\n", buffer);
-    send(client_fd, buffer, strlen(buffer), 0);
+    send(client_fd, hello_msg, strlen(hello_msg), 0);
 
-    bzero(buffer, 1024);
+    // bzero(buffer, 1024);
     recv(client_fd, buffer, sizeof(buffer), 0);
     printf("\nServer : %s", buffer);
 
     close(client_fd);
-    printf("\nDisconnected from the server.\n");
+    printf("\n\nDisconnected from the server.\n");
     return (0);
 }
